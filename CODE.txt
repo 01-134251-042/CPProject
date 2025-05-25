@@ -1,0 +1,269 @@
+#include <iostream>
+#include <string>
+#include <limits>
+#include <fstream>
+
+using namespace std;
+
+// Node structure for passengers
+struct Node {
+    string name;
+    string gender;
+    int age;
+    Node* next;
+};
+
+Node* start = nullptr;
+
+int passengerCount;
+int totalAmount;
+string packageType;
+string packagePlace;
+string travelDate;
+
+// Function prototypes
+void heading();
+void choosePackage();
+void internationalPackages();
+void pakistanPackages();
+void enterPassengerDetails();
+void addNode(const string& name, const string& gender, int age);
+void printReceipt();
+
+void choosePackage() {
+    int choice;
+    cout << "\t1. International Tour Packages\n";
+    cout << "\t2. Pakistan Tour Packages\n";
+    cout << "\tEnter Choice: ";
+    cin >> choice;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    if (choice == 1)
+        internationalPackages();
+    else if (choice == 2)
+        pakistanPackages();
+    else {
+        cout << "Enter Right Choice...\n";
+        choosePackage();
+    }
+}
+
+void viewTripsFromFile() {
+    ifstream inFile("receipt.txt");
+
+    if (!inFile) {
+        cerr << "Error: Unable to open file.\n";
+        return;
+    }
+
+    string line;
+    cout << "\n*** All Trips ***\n";
+    while (getline(inFile, line)) {
+        cout << line << endl;
+    }
+
+    inFile.close();
+}
+
+void deleteTripFromFile() {
+    ifstream inFile("receipt.txt");
+    ofstream tempFile("temp.txt");
+
+    if (!inFile || !tempFile) {
+        cout << "Error: Unable to open file.\n";
+        return;
+    }
+
+    cout << "Enter the Passenger Name of the trip you want to delete: ";
+    string targetName;
+    getline(cin, targetName);
+
+    string line;
+    bool skip = false;
+    while (getline(inFile, line)) {
+        if (line.find("*** Receipt ***") != string::npos) {
+            skip = false;
+        }
+
+        if (line.find("Passenger Name: " + targetName) != string::npos) {
+            skip = true;
+        }
+
+        if (!skip) {
+            tempFile << line << endl;
+        }
+    }
+
+    inFile.close();
+    tempFile.close();
+
+    remove("receipt.txt");
+    rename("temp.txt", "receipt.txt");
+
+    cout << "Trip deleted if it existed.\n";
+}
+
+int main() {
+    int choice;
+
+    heading();
+
+    cout << "\t1. International Tour Packages\n";
+    cout << "\t2. Pakistan Tour Packages\n";
+    cout << "\tEnter Choice: ";
+    cin >> choice;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (choice) {
+    case 1:
+        internationalPackages();
+        break;
+    case 2:
+        pakistanPackages();
+        break;
+    default:
+        cout << "Enter Right Choice...\n";
+        return 1;
+    }
+
+    enterPassengerDetails();
+    printReceipt();
+
+    // Free linked list memory
+    Node* current = start;
+    while (current != nullptr) {
+        Node* toDelete = current;
+        current = current->next;
+        delete toDelete;
+    }
+
+    return 0;
+}
+
+void heading() {
+    cout << "\n\t*** Tourism Package Management System ***\n";
+    cout << "\t*** Vaccination Certificate Is Necessary For Travel Purpose ***\n\n";
+}
+
+void internationalPackages() {
+    int choice;
+    heading();
+    packageType = "International Tour Package";
+    cout << "\t1. England Tour Package (6 Days 7 Nights) - $28880\n";
+    cout << "\t2. Thailand Tour Package (5 Days 4 Nights) - $15500\n";
+    cout << "\t3. New York Tour Package (11 Days 10 Nights) - $567800\n";
+    cout << "\tEnter Choice: ";
+    cin >> choice;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (choice) {
+    case 1:
+        packagePlace = "England Tour";
+        totalAmount = 28880;
+        break;
+    case 2:
+        packagePlace = "Thailand Tour";
+        totalAmount = 15500;
+        break;
+    case 3:
+        packagePlace = "New York Tour";
+        totalAmount = 567800;
+        break;
+    default:
+        cout << "Enter Correct Choice...\n";
+        internationalPackages();
+        break;
+    }
+}
+
+void pakistanPackages() {
+    int choice;
+    heading();
+    packageType = "Pakistan Tour Package";
+    cout << "\t1. Lahore Tour Package (6 Days 7 Nights) - $18880\n";
+    cout << "\t2. Islamabad Tour Package (5 Days 4 Nights) - $35500\n";
+    cout << "\t3. Karachi Tour Package (11 Days 10 Nights) - $10000\n";
+    cout << "\tEnter Choice: ";
+    cin >> choice;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (choice) {
+    case 1:
+        packagePlace = "Lahore Tour";
+        totalAmount = 18880;
+        break;
+    case 2:
+        packagePlace = "Islamabad Tour";
+        totalAmount = 35500;
+        break;
+    case 3:
+        packagePlace = "Karachi Tour";
+        totalAmount = 10000;
+        break;
+    default:
+        cout << "Enter Correct Choice...\n";
+        pakistanPackages();
+        break;
+    }
+}
+
+void enterPassengerDetails() {
+    cout << "\nEnter Number Of Passengers: ";
+    cin >> passengerCount;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    cout << "Enter Date (DD/MM/YY): ";
+    getline(cin, travelDate);
+
+    for (int i = 1; i <= passengerCount; i++) {
+        string name, gender;
+        int age;
+
+        cout << "\nEnter Name of Passenger " << i << ": ";
+        getline(cin, name);
+        cout << "Enter Gender of Passenger " << i << ": ";
+        getline(cin, gender);
+        cout << "Enter Age of Passenger " << i << ": ";
+        cin >> age;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        addNode(name, gender, age);
+    }
+}
+
+void addNode(const string& name, const string& gender, int age) {
+    Node* newNode = new Node;
+    newNode->name = name;
+    newNode->gender = gender;
+    newNode->age = age;
+    newNode->next = nullptr;
+
+    if (start == nullptr) {
+        start = newNode;
+    }
+    else {
+        Node* temp = start;
+        while (temp->next != nullptr)
+            temp = temp->next;
+        temp->next = newNode;
+    }
+}
+
+void printReceipt() {
+    cout << "\n\n*** Receipt ***\n";
+    Node* temp = start;
+    int count = 1;
+    while (temp != nullptr) {
+        cout << count << " Passenger Name: " << temp->name << endl;
+        cout << "   Gender: " << temp->gender << endl;
+        cout << "   Age: " << temp->age << endl;
+        temp = temp->next;
+        count++;
+    }
+    cout << "\nPackage Type: " << packageType << endl;
+    cout << "Package: " << packagePlace << endl;
+    cout << "Date: " << travelDate << endl;
+    cout << "Total Amount: $" << totalAmount * passengerCount << endl;
+    cout << "\nThank you for booking with us!\n";
+}
+
